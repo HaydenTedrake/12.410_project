@@ -2,13 +2,13 @@ from pathlib import Path
 import numpy as np
 from astropy.io import fits
 
-date = "1023"
+date = "1009"
 
 script_dir = Path(__file__).parent
-bias_dir = script_dir / "Raw" / f"2025{date}" / "Bias" / "1x1"
+dark_dir = script_dir / "Raw" / f"42172025{date}" / "Dark"
 
-files = sorted(p for p in bias_dir.glob("*.fit*") if p.is_file())
-assert files, f"No bias FITS files found in {bias_dir.resolve()}"
+files = sorted(p for p in dark_dir.glob("*.fit*") if p.is_file())
+assert files, f"No dark FITS files found in {dark_dir.resolve()}"
 
 stack = []
 for f in files:
@@ -17,12 +17,12 @@ for f in files:
         stack.append(data)
 cube = np.stack(stack, axis=0)  # shape: (N, H, W)
 
-master_bias = np.median(cube, axis=0)
+master_dark = np.median(cube, axis=0)
 
 hdr = fits.Header()
 hdr['NCOMBINE'] = (len(files), 'number of frames combined')
 hdr['COMBINE'] = ('median', 'combination method')
-hdr['IMAGETYP'] = ('BIAS', 'master bias')
-hdr['BIASLVL'] = (float(np.nanmedian(master_bias)), 'median level of master bias (ADU)')
-fits.writeto(f"master-bias-{date}.fits", master_bias.astype(np.float32), hdr, overwrite=True)
-print(f"Wrote master-bias-{date}.fits")
+hdr['IMAGETYP'] = ('DARK', 'master dark')
+hdr['DARKLVL'] = (float(np.nanmedian(master_dark)), 'median level of master dark (ADU)')
+fits.writeto(f"master-dark-{date}.fits", master_dark.astype(np.float32), hdr, overwrite=True)
+print(f"Wrote master-dark-{date}.fits")
