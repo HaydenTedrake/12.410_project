@@ -1,0 +1,79 @@
+1023
+g'
+
+                          Total | Inner | Outer | Description
+Plate Solution Residuals:  0.21 |  0.24 |  0.20 | [  OK  ] The plate solution is usable
+Matching Star Percentage:    50 |    50 |     0 | [FAILED] The percentage of matching stars is outside tolerance.
+             Image shift:  1.04 |  0.93 |  0.00 | [  OK  ] The median image shift is within tolerance.
+              Image FWHM:  2.11 |  2.18 |  2.03 | The full-width half maximum (FWHM) of the images, in arcseconds.
+               Image SNR: 197.96 | 249.36 | 140.14 | Median target signal-to-noise ratio (SNR).
+      Limiting magnitude: 19.17 | 19.00 | 19.41 | The magnitude of sources at SNR=10.0 (relies on star catalog settings)
+Stack limiting magnitude: 20.38 | 20.26 | 20.52 | The limiting magnitude achieved when stacking the images.
+
+r'
+                          Total | Inner | Outer | Description
+Plate Solution Residuals:  0.31 |  0.31 |  0.00 | [  OK  ] The plate solution is usable
+Matching Star Percentage:    20 |    20 |     0 | [FAILED] The percentage of matching stars is outside tolerance.
+             Image shift:  1.17 |  1.17 |  0.00 | [FAILED] The alignment of the images is outside tolerance.
+              Image FWHM:  2.12 |  2.16 |  2.01 | The full-width half maximum (FWHM) of the images, in arcseconds.
+               Image SNR: 218.18 | 256.03 | 143.43 | Median target signal-to-noise ratio (SNR).
+      Limiting magnitude: 20.31 | 20.23 | 20.31 | The magnitude of sources at SNR=10.0 (relies on star catalog settings)
+Stack limiting magnitude: 21.09 | 21.16 | 21.15 | The limiting magnitude achieved when stacking the images.
+
+
+1022
+g'
+                          Total | Inner | Outer | Description
+Plate Solution Residuals:  0.25 |  0.40 |  0.25 | [  OK  ] The plate solution is usable
+Matching Star Percentage:     0 |     0 |     0 | [FAILED] The percentage of matching stars is outside tolerance.
+             Image shift:  0.00 |  0.00 |  0.00 | [  OK  ] The median image shift is within tolerance.
+              Image FWHM:  2.15 |  2.22 |  2.11 | The full-width half maximum (FWHM) of the images, in arcseconds.
+               Image SNR: 116.01 | 124.41 | 97.40 | Median target signal-to-noise ratio (SNR).
+      Limiting magnitude: 18.40 | 18.79 | 17.97 | The magnitude of sources at SNR=10.0 (relies on star catalog settings)
+Stack limiting magnitude: 18.95 | 19.49 | 18.40 | The limiting magnitude achieved when stacking the images.
+
+
+1009
+g'
+                          Total | Inner | Outer | Description
+Plate Solution Residuals:  0.30 |  0.30 |  0.00 | [  OK  ] The plate solution is usable
+Matching Star Percentage:     0 |     0 |     0 | [FAILED] The percentage of matching stars is outside tolerance.
+             Image shift:  0.00 |  0.00 |  0.00 | [  OK  ] The median image shift is within tolerance.
+              Image FWHM:  2.33 |  2.73 |  2.22 | The full-width half maximum (FWHM) of the images, in arcseconds.
+               Image SNR: 129.40 | 289.26 | 109.79 | Median target signal-to-noise ratio (SNR).
+      Limiting magnitude: 17.84 | 17.93 | 17.77 | The magnitude of sources at SNR=10.0 (relies on star catalog settings)
+Stack limiting magnitude: 19.20 | 19.19 | 18.97 | The limiting magnitude achieved when stacking the images.
+
+r'
+                          Total | Inner | Outer | Description
+Plate Solution Residuals:  0.00 |  0.00 |  0.00 | [  OK  ] The plate solution is usable
+Matching Star Percentage:     0 |     0 |     0 | [FAILED] The percentage of matching stars is outside tolerance.
+             Image shift:  0.00 |  0.00 |  0.00 | [  OK  ] The median image shift is within tolerance.
+              Image FWHM:  2.44 |  0.00 |  2.44 | The full-width half maximum (FWHM) of the images, in arcseconds.
+               Image SNR: 159.73 |  0.00 | 159.73 | Median target signal-to-noise ratio (SNR).
+      Limiting magnitude: 18.95 |  0.00 | 18.95 | The magnitude of sources at SNR=10.0 (relies on star catalog settings)
+Stack limiting magnitude: 20.36 |  0.00 | 20.36 | The limiting magnitude achieved when stacking the images.
+
+
+1002
+r'
+                          Total | Inner | Outer | Description
+Plate Solution Residuals:  0.43 |  0.33 |  0.56 | [  OK  ] The plate solution is usable
+Matching Star Percentage:     0 |     0 |     0 | [FAILED] The percentage of matching stars is outside tolerance.
+             Image shift:  0.00 |  0.00 |  0.00 | [  OK  ] The median image shift is within tolerance.
+              Image FWHM:  2.09 |  2.28 |  2.01 | The full-width half maximum (FWHM) of the images, in arcseconds.
+               Image SNR: 119.35 | 153.63 | 101.28 | Median target signal-to-noise ratio (SNR).
+      Limiting magnitude: 18.90 | 19.23 | 18.62 | The magnitude of sources at SNR=10.0 (relies on star catalog settings)
+Stack limiting magnitude: 21.13 | 21.34 | 20.89 | The limiting magnitude achieved when stacking the images.
+
+
+0918
+r'
+                          Total | Inner | Outer | Description
+Plate Solution Residuals:  0.39 |  0.39 |  0.41 | [  OK  ] The plate solution is usable
+Matching Star Percentage:    63 |    57 |    66 | [  OK  ] The percentage of matching stars is within tolerance.
+             Image shift:  0.45 |  0.47 |  0.46 | [  OK  ] The median image shift is within tolerance.
+              Image FWHM:  3.19 |  3.17 |  3.19 | The full-width half maximum (FWHM) of the images, in arcseconds.
+               Image SNR: 154.99 | 154.18 | 184.20 | Median target signal-to-noise ratio (SNR).
+      Limiting magnitude: 18.53 | 18.51 | 18.53 | The magnitude of sources at SNR=10.0 (relies on star catalog settings)
+Stack limiting magnitude: 20.49 | 20.48 | 20.48 | The limiting magnitude achieved when stacking the images.
