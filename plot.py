@@ -64,6 +64,7 @@ for i, nid in enumerate(unique_nights):
 
 phi_fit = np.linspace(0, 1, 600)
 m_fit = two_harmonic(phi_fit, *popt)
+np.save('r_fitted_curve.npy', m_fit)
 plt.plot(phi_fit, m_fit, 'k-', lw=2, label="2nd Order Fit")
 
 mean_val = np.average(m, weights=w)
@@ -76,9 +77,9 @@ plt.text(0.5, mean_val, f'Mean: {mean_val:.3f} $\\pm$ {mean_err:.3f}',
          ha='center', va='bottom', alpha=0.9)
 
 period_text = f'Period: {P_HOURS:.3f} $\\pm$ 0.001 hrs'
-plt.text(0.02, 0.98, period_text, 
+plt.text(0.01, 0.02, period_text, 
          transform=plt.gca().transAxes,
-         ha='left', va='top', alpha=0.9)
+         ha='left', va='bottom', alpha=0.9)
 
 plt.gca().invert_yaxis()
 plt.xlim(0, 1)
@@ -86,6 +87,7 @@ plt.xlabel("Rotational Phase")
 plt.ylabel("Apparent magnitude (r')")
 plt.title(title)
 plt.grid(True, linestyle=':', linewidth=0.7, alpha=0.7)
-plt.legend(loc="upper right", frameon=True)
+plt.legend(loc="upper left", frameon=True, handlelength=1.5, handletextpad=0.5)
 plt.tight_layout()
+plt.savefig("Figures/rcurve.png")
 plt.show()

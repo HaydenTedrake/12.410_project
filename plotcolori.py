@@ -1,110 +1,40 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from scipy.optimize import curve_fit
-from astropy.stats import sigma_clip
-
-CSV_PATH = "r'.csv"
-JD0 = 2460937.569719
-P_HOURS = 3.066
-gap_days = 0.50
-title = "r' light curve of 4217 Engelhardt (WAO 14-in data)"
-
-df = pd.read_csv(CSV_PATH)
-t = df["JD"].astype(float).to_numpy()
-m = df["Mag"].astype(float).to_numpy()
-e = df["MagErr"].astype(float).to_numpy()
-
-P_days = P_HOURS / 24.0
-phi = ((t - JD0) / P_days) % 1.0
-
-dt = np.diff(t, prepend=t[0])
-night_id = np.zeros_like(t, dtype=int)
-for i in range(1, len(t)):
-    night_id[i] = night_id[i-1] + (dt[i] > gap_days)
-
-def two_harmonic(phi, a0, a1, b1, a2, b2):
-    return (
-        a0
-        + a1 * np.cos(2 * np.pi * phi)
-        + b1 * np.sin(2 * np.pi * phi)
-        + a2 * np.cos(4 * np.pi * phi)
-        + b2 * np.sin(4 * np.pi * phi)
-    )
-
-popt, pcov = curve_fit(
-    two_harmonic,
-    phi,
-    m,
-    sigma=e,
-    absolute_sigma=True,
-    p0=[np.mean(m), 0, 0, 0, 0]
-)
-
-print("Best-fit parameters:", popt)
-
-residuals = m - two_harmonic(phi, *popt)
-chi2 = np.sum((residuals / e) ** 2)
-dof = len(m) - len(popt)
-print(f"Reduced χ² = {chi2/dof:.2f}")
 
 phi_fit = np.linspace(0, 1, 600)
-m_fitr = two_harmonic(phi_fit, *popt)
+m_fitr = np.load('r_fitted_curve.npy')
+m_fitg = np.load('g_fitted_curve.npy')
 
-CSV_PATH = "g'2.csv"
-JD0 = 2460958.552769
-P_HOURS = 3.066
-gap_days = 0.50
-title = "g' light curve of 4217 Engelhardt (WAO 14-in data)"
+fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(9, 8), 
+                               gridspec_kw={'height_ratios': [2, 1]})
 
-df = pd.read_csv(CSV_PATH)
-t = df["JD"].astype(float).to_numpy()
-m = df["Mag"].astype(float).to_numpy()
-e = df["MagErr"].astype(float).to_numpy()
+colors = ["#E69F00", "#56B4E9", "#009E73", "#0072B2", "#D55E00", "#CC79A7"]
 
-P_days = P_HOURS / 24.0
-phi = ((t - JD0) / P_days) % 1.0
+ax1.plot(phi_fit, m_fitr, '-', linewidth=1.5, alpha=0.8, label="r' fit", color=colors[0])
+ax1.plot(phi_fit, m_fitg, '-', linewidth=1.5, alpha=0.8, label="g' fit", color=colors[1])
 
-dt = np.diff(t, prepend=t[0])
-night_id = np.zeros_like(t, dtype=int)
-for i in range(1, len(t)):
-    night_id[i] = night_id[i-1] + (dt[i] > gap_days)
-
-def two_harmonic(phi, a0, a1, b1, a2, b2):
-    return (
-        a0
-        + a1 * np.cos(2 * np.pi * phi)
-        + b1 * np.sin(2 * np.pi * phi)
-        + a2 * np.cos(4 * np.pi * phi)
-        + b2 * np.sin(4 * np.pi * phi)
-    )
-
-popt, pcov = curve_fit(
-    two_harmonic,
-    phi,
-    m,
-    sigma=e,
-    absolute_sigma=True,
-    p0=[np.mean(m), 0, 0, 0, 0]
-)
-
-print("Best-fit parameters:", popt)
-
-residuals = m - two_harmonic(phi, *popt)
-chi2 = np.sum((residuals / e) ** 2)
-dof = len(m) - len(popt)
-print(f"Reduced χ² = {chi2/dof:.2f}")
-
-m_fitg = two_harmonic(phi_fit, *popt)
-
-plt.figure(figsize=(9, 5.2))
-plt.plot(phi_fit, m_fitg - m_fitr, 'k-', lw=2, label="g'-r'")
-plt.gca().invert_yaxis()
-plt.xlim(0, 1)
-plt.xlabel("Rotational Phase")
-plt.ylabel("Apparent magnitude (r′)")
-plt.title(title)
+ax1.invert_yaxis()
+ax1.set_xlim(0, 1)
+ax1.set_ylabel("Apparent Magnitude")
+ax1.legend(loc="upper right", frameon=True, handlelength=1.5, handletextpad=0.5)
 plt.grid(True, linestyle=':', linewidth=0.7, alpha=0.7)
-plt.legend(loc="upper right", frameon=True)
+ax1.set_title("Rotational color variation of 4217 Engelhardt (WAO 14-in data)")
+
+color_curve = m_fitg - m_fitr
+ax2.plot(phi_fit, color_curve, 'k-', linewidth=2, label="g'-r' color")
+ax2.invert_yaxis()
+ax2.set_xlim(0, 1)
+ax2.set_xlabel("Rotational Phase")
+ax2.set_ylabel("g'-r' Color")
+ax2.legend(loc="upper right", frameon=True, handlelength=1.5, handletextpad=0.5)
+ax2.grid(True, linestyle=':', linewidth=0.7, alpha=0.7)
+
+period_text = f'Period: 3.066 $\\pm$ 0.001 hrs'
+ax1.text(0.01, 0.02, period_text, 
+         transform=ax1.transAxes,
+         ha='left', va='bottom', alpha=0.9)
+
 plt.tight_layout()
+plt.savefig("Figures/colorcurve.png")
 plt.show()
