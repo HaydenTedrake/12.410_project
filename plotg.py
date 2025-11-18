@@ -8,12 +8,20 @@ CSV_PATH = "g'2.csv"
 JD0 = 2460958.552769
 P_HOURS = 3.066
 gap_days = 0.50
-title = "Light curve of 4217 Engelhardt (WAO 14-in data)"
+title = "g' light curve of 4217 Engelhardt (WAO 14-in data)"
 
 df = pd.read_csv(CSV_PATH)
 t = df["JD"].astype(float).to_numpy()
 m = df["Mag"].astype(float).to_numpy()
 e = df["MagErr"].astype(float).to_numpy()
+
+P_days = P_HOURS / 24.0
+phi = ((t - JD0) / P_days) % 1.0
+
+dt = np.diff(t, prepend=t[0])
+night_id = np.zeros_like(t, dtype=int)
+for i in range(1, len(t)):
+    night_id[i] = night_id[i-1] + (dt[i] > gap_days)
 
 def two_harmonic(phi, a0, a1, b1, a2, b2):
     return (
@@ -24,27 +32,6 @@ def two_harmonic(phi, a0, a1, b1, a2, b2):
         + b2 * np.sin(4 * np.pi * phi)
     )
 
-periods = np.linspace(3.06, 3.072, 200)
-chi2_vals = []
-
-for P in periods:
-    P_days = P / 24.0
-    phi_test = ((t - JD0) / P_days) % 1.0
-    popt_test, _ = curve_fit(two_harmonic, phi_test, m, sigma=e, absolute_sigma=True, p0=[np.mean(m), 0, 0, 0, 0])
-    residuals = m - two_harmonic(phi_test, *popt_test)
-    chi2_vals.append(np.sum((residuals / e)**2))
-
-best_P = periods[np.argmin(chi2_vals)]
-print("Refined period:", best_P)
-
-P_days = best_P / 24.0
-phi = ((t - JD0) / P_days) % 1.0
-
-dt = np.diff(t, prepend=t[0])
-night_id = np.zeros_like(t, dtype=int)
-for i in range(1, len(t)):
-    night_id[i] = night_id[i-1] + (dt[i] > gap_days)
-
 popt, pcov = curve_fit(
     two_harmonic,
     phi,
@@ -52,17 +39,6 @@ popt, pcov = curve_fit(
     sigma=e,
     absolute_sigma=True,
     p0=[np.mean(m), 0, 0, 0, 0]
-)
-
-residuals = m - two_harmonic(phi, *popt)
-mask = ~sigma_clip(residuals, sigma=2.5, maxiters=5).mask
-popt, pcov = curve_fit(
-    two_harmonic,
-    phi[mask],
-    m[mask],
-    sigma=e[mask],
-    absolute_sigma=True,
-    p0=[np.mean(m[mask]), 0, 0, 0, 0]
 )
 
 print("Best-fit parameters:", popt)
@@ -76,6 +52,7 @@ plt.figure(figsize=(9, 5.2))
 w = 1.0 / np.maximum(e, 1e-6)**2
 
 colors = ["#E69F00", "#56B4E9", "#009E73", "#0072B2", "#D55E00", "#CC79A7"]
+dates = ["20251009 UT", "20251022 UT", "20251023 UT"]
 
 unique_nights = np.unique(night_id)
 for i, nid in enumerate(unique_nights):
@@ -83,7 +60,7 @@ for i, nid in enumerate(unique_nights):
     plt.errorbar(phi[sel], m[sel], yerr=e[sel],
                  fmt='.', ms=3, elinewidth=0.7, capsize=0,
                  alpha=0.95, color=colors[i % len(colors)],
-                 label=f"Night {nid+1}")
+                 label=f"{dates[nid]}")
 
 phi_fit = np.linspace(0, 1, 600)
 m_fit = two_harmonic(phi_fit, *popt)
@@ -94,14 +71,19 @@ variance = np.average((m - mean_val)**2, weights=w)
 weight_sum = np.sum(w)
 mean_err = np.sqrt(variance / weight_sum)
 
-plt.axhline(mean_val, color='k', linestyle=':', linewidth=1.1, alpha=0.8, label="Mean")
+plt.axhline(mean_val, color='k', linestyle=':', linewidth=1.1, alpha=0.8)
 plt.text(0.5, mean_val, f'Mean: {mean_val:.3f} $\\pm$ {mean_err:.3f}', 
          ha='center', va='bottom', alpha=0.9)
+
+period_text = f'Period: {P_HOURS:.3f} $\\pm$ 0.001 hrs'
+plt.text(0.02, 0.98, period_text, 
+         transform=plt.gca().transAxes,
+         ha='left', va='top', alpha=0.9)
 
 plt.gca().invert_yaxis()
 plt.xlim(0, 1)
 plt.xlabel("Rotational Phase")
-plt.ylabel("Apparent magnitude (r′)")
+plt.ylabel("Apparent magnitude (g')")
 plt.title(title)
 plt.grid(True, linestyle=':', linewidth=0.7, alpha=0.7)
 plt.legend(loc="upper right", frameon=True)
