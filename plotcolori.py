@@ -1,40 +1,126 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from scipy.optimize import curve_fit
+from astropy.stats import sigma_clip
+import pickle
+
+with open("rtenten.pkl", "rb") as f:
+    rtenten = pickle.load(f)
+with open("rtentwentyfour.pkl", "rb") as f:
+    rtentwentyfour = pickle.load(f)
+with open("gtenten.pkl", "rb") as f:
+    gtenten = pickle.load(f)
+with open("gtentwentyfour.pkl", "rb") as f:
+    gtentwentyfour = pickle.load(f)
+    gtentwentyfour = gtentwentyfour[:13]
+
+t = []
+m = []
+e = []
+for i in range(len(rtenten)):
+    t.append((rtenten[i][0]+gtenten[i][0])/2)
+    m.append(gtenten[i][1]-rtenten[i][1])
+    e.append(np.sqrt(rtenten[i][2]**2+gtenten[i][2]**2))
+for i in range(len(rtentwentyfour)):
+    t.append((rtentwentyfour[i][0]+gtentwentyfour[i][0])/2)
+    m.append(gtentwentyfour[i][1]-rtentwentyfour[i][1])
+    e.append(np.sqrt(rtentwentyfour[i][2]**2+gtentwentyfour[i][2]**2))
+t = np.array(t)
+m = np.array(m)
+e = np.array(e)
+
+P_HOURS = 3.066
+P_days = P_HOURS / 24.0
+gap_days = 0.50
+JD0 = 2460958.55063
+phi = ((t - JD0) / P_days) % 1.0
+title = "g'-r' color index of 4217 Engelhardt (WAO 14-in data)"
+
+dt = np.diff(t, prepend=t[0])
+night_id = np.zeros_like(t, dtype=int)
+for i in range(1, len(t)):
+    night_id[i] = night_id[i-1] + (dt[i] > gap_days)
+
+def three_harmonic(phi, a0, a1, b1, a2, b2, a3, b3):
+    return (
+        a0
+        + a1 * np.cos(2 * np.pi * phi)   # 1st harmonic
+        + b1 * np.sin(2 * np.pi * phi)
+        + a2 * np.cos(4 * np.pi * phi)   # 2nd harmonic
+        + b2 * np.sin(4 * np.pi * phi)
+        + a3 * np.cos(6 * np.pi * phi)   # 3rd harmonic
+        + b3 * np.sin(6 * np.pi * phi)
+    )
+
+popt, pcov = curve_fit(
+    three_harmonic,
+    phi,
+    m,
+    sigma=e,
+    absolute_sigma=True,
+    p0=[np.mean(m), 0, 0, 0, 0, 0, 0]
+)
+
+print("Best-fit parameters:", popt)
+
+residuals = m - three_harmonic(phi, *popt)
+chi2 = np.sum((residuals / e) ** 2)
+dof = len(m) - len(popt)
+print(f"Reduced χ² = {chi2/dof:.2f}")
+
+plt.figure(figsize=(9, 5.2))
+w = 1.0 / np.maximum(e, 1e-6)**2
+
+colors = [
+    "#0072B2",  # blue
+    "#E69F00",  # orange
+]
+markers = ["o", "s", "^", "D"]
+dates = ["20251010 UT", "20251024 UT"]
+
+unique_nights = np.unique(night_id)
+for i, nid in enumerate(unique_nights):
+    sel = (night_id == nid)
+    plt.errorbar(
+        phi[sel], m[sel], yerr=e[sel],
+        fmt=markers[i % len(markers)],
+        markersize=4.5,
+        elinewidth=0.7,
+        capsize=0,
+        alpha=0.7,
+        color=colors[i % len(colors)],
+        linestyle='none',
+        label=f"{dates[nid]}",
+    )
 
 phi_fit = np.linspace(0, 1, 600)
-m_fitr = np.load('r_fitted_curve.npy')
-m_fitg = np.load('g_fitted_curve.npy')
+m_fit = three_harmonic(phi_fit, *popt)
+plt.plot(phi_fit, m_fit, 'k-', lw=2, label="3rd Order Fit")
 
-fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(9, 8), 
-                               gridspec_kw={'height_ratios': [2, 1]})
+mean_val = np.average(m, weights=w)
+variance = np.average((m - mean_val)**2, weights=w)
+weight_sum = np.sum(w)
+mean_err = np.sqrt(variance / weight_sum)
 
-colors = ["#E69F00", "#56B4E9", "#009E73", "#0072B2", "#D55E00", "#CC79A7"]
+plt.axhline(mean_val, color='k', linestyle=':', linewidth=1.1, alpha=0.8)
+plt.text(0.595, mean_val, f'Mean: {mean_val:.2f} $\\pm$ {mean_err:.2f}', 
+         ha='center', va='bottom', alpha=0.9, fontsize=12)
 
-ax1.plot(phi_fit, m_fitr, '-', linewidth=1.5, alpha=0.8, label="r' fit", color=colors[0])
-ax1.plot(phi_fit, m_fitg, '-', linewidth=1.5, alpha=0.8, label="g' fit", color=colors[1])
+period_text = f'Period: {P_HOURS:.3f} $\\pm$ 0.001 hrs'
+plt.text(0.01, 0.02, period_text, 
+         transform=plt.gca().transAxes,
+         ha='left', va='bottom', alpha=0.9, fontsize=12)
 
-ax1.invert_yaxis()
-ax1.set_xlim(0, 1)
-ax1.set_ylabel("Apparent Magnitude")
-ax1.legend(loc="upper right", frameon=True, handlelength=1.5, handletextpad=0.5)
+plt.gca().invert_yaxis()
+plt.xlim(0, 1)
+plt.xlabel("Rotational Phase", fontsize=12)
+plt.ylabel("Apparent magnitude (r')", fontsize=12)
+plt.xticks(fontsize=12)
+plt.yticks(fontsize=12) 
+plt.title(title, fontsize=12)
 plt.grid(True, linestyle=':', linewidth=0.7, alpha=0.7)
-ax1.set_title("Rotational color variation of 4217 Engelhardt (WAO 14-in data)")
-
-color_curve = m_fitg - m_fitr
-ax2.plot(phi_fit, color_curve, 'k-', linewidth=2, label="g'-r' color")
-ax2.invert_yaxis()
-ax2.set_xlim(0, 1)
-ax2.set_xlabel("Rotational Phase")
-ax2.set_ylabel("g'-r' Color")
-ax2.legend(loc="upper right", frameon=True, handlelength=1.5, handletextpad=0.5)
-ax2.grid(True, linestyle=':', linewidth=0.7, alpha=0.7)
-
-period_text = f'Period: 3.066 $\\pm$ 0.001 hrs'
-ax1.text(0.01, 0.02, period_text, 
-         transform=ax1.transAxes,
-         ha='left', va='bottom', alpha=0.9)
-
+plt.legend(loc="upper left", frameon=True, handlelength=1.5, handletextpad=0.5, fontsize=12)
 plt.tight_layout()
 plt.savefig("Figures/colorcurve.png")
 plt.show()
