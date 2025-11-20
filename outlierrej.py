@@ -4,7 +4,7 @@ from scipy.stats import norm
 
 
 r = "r'.csv"
-g = "g'2.csv"
+g = "g'.csv"
 
 dfr = pd.read_csv(r)
 dfg = pd.read_csv(g)
