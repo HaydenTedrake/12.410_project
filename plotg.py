@@ -55,9 +55,9 @@ plt.figure(figsize=(9, 5.2))
 w = 1.0 / np.maximum(e, 1e-6)**2
 
 colors = [
-    "#E69F00",  # orange
     "#009E73",  # bluish green
     "#CC79A7",  # purple/magenta
+    "#E69F00",  # orange
 ]
 markers = ["o", "s", "^", "D"]
 dates = ["20251010 UT", "20251023 UT", "20251024 UT"]
@@ -92,10 +92,6 @@ with open("gtentwentyfour.pkl", "wb") as f:
 
 phi_fit = np.linspace(0, 1, 600)
 m_fit = three_harmonic(phi_fit, *popt)
-np.save('g_fitted_curve.npy', m_fit)
-# phi_fit = np.linspace(0, 1, 600)
-# m_fit = four_harmonic(phi_fit, *popt)
-# np.save('g_fitted_curve.npy', m_fit)
 plt.plot(phi_fit, m_fit, 'k-', lw=2, label="3rd Order Fit")
 
 mean_val = np.average(m, weights=w)
