@@ -7,7 +7,7 @@ from astropy.stats import sigma_clip
 
 CSV_PATH = "g'.csv"
 JD0 = 2460958.552769
-P_HOURS = 3.066
+P_HOURS = 3.0661
 gap_days = 0.50
 title = "g' light curve of 4217 Engelhardt (WAO 14-in data)"
 
@@ -103,7 +103,7 @@ plt.axhline(mean_val, color='k', linestyle=':', linewidth=1.1, alpha=0.8)
 plt.text(0.565, mean_val + 0.02, f'Mean: {mean_val:.2f} $\\pm$ {mean_err:.2f}', 
          ha='center', va='bottom', alpha=0.9, fontsize=12)
 
-period_text = f'Period: {P_HOURS:.3f} $\\pm$ 0.001 hrs'
+period_text = f'Period: {P_HOURS} $\\pm$ 0.0002 hrs'
 plt.text(0.01, 0.02, period_text, 
          transform=plt.gca().transAxes,
          ha='left', va='bottom', alpha=0.9, fontsize=12)
