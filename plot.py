@@ -91,13 +91,8 @@ print("Best-fit parameters:", popt)
 
 residuals = new_m - four_harmonic(phi, *popt)
 
-# Create subplots
-fig, (ax1, ax2) = plt.subplots(
-    2, 1,
-    sharex=True,
-    figsize=(9, 8),
-    gridspec_kw={"height_ratios": [2, 1]}  # top : bottom
-)
+# Create single plot
+fig, ax1 = plt.subplots(1, 1, figsize=(9, 6))
 
 w = 1.0 / np.maximum(e, 1e-6)**2
 
@@ -110,7 +105,7 @@ colors = [
 markers = ["o", "s", "^", "D"]
 dates = ["20250919 UT", "20251003 UT", "20251010 UT", "20251024 UT"]
 
-# Plot light curve on top subplot
+# Plot light curve on main plot
 unique_nights = np.unique(night_id)
 for i, nid in enumerate(unique_nights):
     sel = (night_id == nid)
@@ -159,19 +154,30 @@ ax1.text(0.01, 0.02, period_text,
 
 ax1.invert_yaxis()
 ax1.set_xlim(0, 1)
-fig.supylabel("Apparent magnitude (r')", fontsize=12)
+ax1.tick_params(axis='both', which='major', labelsize=12) 
+ax1.set_ylabel("Apparent magnitude (r')", fontsize=12)
+ax1.set_xlabel("Rotational Phase", fontsize=12)
 ax1.set_title(title, fontsize=12)
 ax1.grid(True, linestyle=':', linewidth=0.7, alpha=0.7)
 ax1.legend(loc="upper left", frameon=True, handlelength=1.5, handletextpad=0.5, fontsize=12)
 
-# Plot residuals on bottom subplot
+# Create inset axes for residuals with exact position control
+# [left, bottom, width, height] in figure coordinates (0-1)
+left = 0.745    # Distance from left edge
+bottom = 0.155  # Distance from bottom edge  
+width = 0.19   # Width of inset
+height = 0.19  # Height of inset
+
+ax2 = fig.add_axes([left, bottom, width, height])
+
+# Plot residuals on inset
 for i, nid in enumerate(unique_nights):
     sel = (night_id == nid)
     ax2.errorbar(
         phi[sel], residuals[sel], yerr=e[sel],
         fmt=markers[i % len(markers)],
-        markersize=4.5,
-        elinewidth=0.7,
+        markersize=3.0,
+        elinewidth=0.5,
         capsize=0,
         alpha=0.7,
         color=colors[i % len(colors)],
@@ -183,19 +189,18 @@ residual_mean = np.average(residuals, weights=w)
 residual_variance = np.average((residuals - residual_mean)**2, weights=w)
 residual_mean_err = np.sqrt(residual_variance / weight_sum)
 
-ax2.axhline(0, color='k', linestyle='-', linewidth=1, alpha=0.8)
-ax2.axhline(residual_mean, color='k', linestyle=':', linewidth=1.1, alpha=0.8)
-xtext = 0.5
-ytext = residual_mean
-ax2.text(xtext, ytext,
-         f'Mean: {-residual_mean:.2f} $\\pm$ {residual_mean_err:.2f}',
-         ha='center', va='bottom', alpha=0.9, fontsize=12)
+ax2.axhline(0, color='k', linestyle='-', linewidth=0.8, alpha=0.8)
+ax2.axhline(residual_mean, color='k', linestyle=':', linewidth=0.8, alpha=0.8)
+
 ax2.invert_yaxis()
 ax2.set_xlim(0, 1)
-ax2.set_title("Residuals from 4th Order Fit", fontsize=12)
-ax2.set_xlabel("Rotational Phase", fontsize=12)
-ax2.grid(True, linestyle=':', linewidth=0.7, alpha=0.7)
+ax2.set_title("Residuals", fontsize=12)  # Same font size as main plot
+
+# Set consistent font sizes for all ticks
+ax2.tick_params(axis='both', which='major', labelsize=12)  # Same as main plot
+
+ax2.grid(True, linestyle=':', linewidth=0.5, alpha=0.7)
 
 plt.tight_layout()
-plt.savefig("Figures/rcurve_with_residuals.png")
+plt.savefig("Figures/rcurve_with_residuals.png", dpi=300, bbox_inches='tight')
 plt.show()
