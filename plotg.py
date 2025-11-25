@@ -19,10 +19,16 @@ e = df["MagErr"].astype(float).to_numpy()
 P_days = P_HOURS / 24.0
 phi = ((t - JD0) / P_days) % 1.0
 
+new_m = []
 dt = np.diff(t, prepend=t[0])
 night_id = np.zeros_like(t, dtype=int)
-for i in range(1, len(t)):
+for i in range(0, len(t)):
     night_id[i] = night_id[i-1] + (dt[i] > gap_days)
+    if night_id[i] == 1:
+        new_m.append(m[i]+0.05179233333)
+    else:
+        new_m.append(m[i])
+new_m = np.array(new_m)
 
 def three_harmonic(phi, a0, a1, b1, a2, b2, a3, b3):
     return (
@@ -38,20 +44,27 @@ def three_harmonic(phi, a0, a1, b1, a2, b2, a3, b3):
 popt, pcov = curve_fit(
     three_harmonic,
     phi,
-    m,
+    new_m,
     sigma=e,
     absolute_sigma=True,
-    p0=[np.mean(m), 0, 0, 0, 0, 0, 0]
+    p0=[np.mean(new_m), 0, 0, 0, 0, 0, 0]
 )
 
 print("Best-fit parameters:", popt)
 
-residuals = m - three_harmonic(phi, *popt)
+residuals = new_m - three_harmonic(phi, *popt)
 chi2 = np.sum((residuals / e) ** 2)
-dof = len(m) - len(popt)
+dof = len(new_m) - len(popt)
 print(f"Reduced χ² = {chi2/dof:.2f}")
 
-plt.figure(figsize=(9, 5.2))
+# Create subplots
+fig, (ax1, ax2) = plt.subplots(
+    2, 1,
+    sharex=True,
+    figsize=(9, 8),
+    gridspec_kw={"height_ratios": [2, 1]}  # top : bottom
+)
+
 w = 1.0 / np.maximum(e, 1e-6)**2
 
 colors = [
@@ -62,11 +75,12 @@ colors = [
 markers = ["o", "s", "^", "D"]
 dates = ["20251010 UT", "20251023 UT", "20251024 UT"]
 
+# Plot light curve on top subplot
 unique_nights = np.unique(night_id)
 for i, nid in enumerate(unique_nights):
     sel = (night_id == nid)
-    plt.errorbar(
-        phi[sel], m[sel], yerr=e[sel],
+    ax1.errorbar(
+        phi[sel], new_m[sel], yerr=e[sel],
         fmt=markers[i % len(markers)],
         markersize=4.5,
         elinewidth=0.7,
@@ -82,41 +96,71 @@ tentwentyfour = []
 for nid in unique_nights:
     sel = (night_id == nid)
     if nid == 0:
-        tenten.extend(zip(t[sel], m[sel], e[sel]))
+        tenten.extend(zip(t[sel], new_m[sel], e[sel]))
     elif nid == 2:
-        tentwentyfour.extend(zip(t[sel], m[sel], e[sel]))
+        tentwentyfour.extend(zip(t[sel], new_m[sel], e[sel]))
 with open("gtenten.pkl", "wb") as f:
     pickle.dump(tenten, f)
 with open("gtentwentyfour.pkl", "wb") as f:
     pickle.dump(tentwentyfour, f)
 
 phi_fit = np.linspace(0, 1, 600)
-m_fit = three_harmonic(phi_fit, *popt)
-plt.plot(phi_fit, m_fit, 'k-', lw=2, label="3rd Order Fit")
+new_m_fit = three_harmonic(phi_fit, *popt)
+ax1.plot(phi_fit, new_m_fit, 'k-', lw=2, label="3rd Order Fit")
 
-mean_val = np.average(m, weights=w)
-variance = np.average((m - mean_val)**2, weights=w)
+mean_val = np.average(new_m, weights=w)
+variance = np.average((new_m - mean_val)**2, weights=w)
 weight_sum = np.sum(w)
 mean_err = np.sqrt(variance / weight_sum)
 
-plt.axhline(mean_val, color='k', linestyle=':', linewidth=1.1, alpha=0.8)
-plt.text(0.565, mean_val + 0.02, f'Mean: {mean_val:.2f} $\\pm$ {mean_err:.2f}', 
+ax1.axhline(mean_val, color='k', linestyle=':', linewidth=1.1, alpha=0.8)
+ax1.text(0.775, mean_val, f'Mean: {mean_val:.2f} $\\pm$ {mean_err:.2f}', 
          ha='center', va='bottom', alpha=0.9, fontsize=12)
 
 period_text = f'Period: {P_HOURS} $\\pm$ 0.0002 hrs'
-plt.text(0.01, 0.02, period_text, 
-         transform=plt.gca().transAxes,
+ax1.text(0.01, 0.02, period_text, 
+         transform=ax1.transAxes,
          ha='left', va='bottom', alpha=0.9, fontsize=12)
 
-plt.gca().invert_yaxis()
-plt.xlim(0, 1)
-plt.xlabel("Rotational Phase", fontsize=12)
-plt.ylabel("Apparent magnitude (g')", fontsize=12)
-plt.xticks(fontsize=12)
-plt.yticks(fontsize=12) 
-plt.title(title, fontsize=12)
-plt.grid(True, linestyle=':', linewidth=0.7, alpha=0.7)
-plt.legend(loc="upper right", frameon=True, handlelength=1.5, handletextpad=0.5, fontsize=12)
+ax1.invert_yaxis()
+ax1.set_xlim(0, 1)
+fig.supylabel("Apparent magnitude (g')", fontsize=12)
+ax1.set_title(title, fontsize=12)
+ax1.grid(True, linestyle=':', linewidth=0.7, alpha=0.7)
+ax1.legend(loc="upper right", frameon=True, handlelength=1.5, handletextpad=0.5, fontsize=12)
+
+# Plot residuals on bottom subplot
+for i, nid in enumerate(unique_nights):
+    sel = (night_id == nid)
+    ax2.errorbar(
+        phi[sel], residuals[sel], yerr=e[sel],
+        fmt=markers[i % len(markers)],
+        markersize=4.5,
+        elinewidth=0.7,
+        capsize=0,
+        alpha=0.7,
+        color=colors[i % len(colors)],
+        linestyle='none',
+    )
+
+# Calculate mean and error of residuals
+residual_mean = np.average(residuals, weights=w)
+residual_variance = np.average((residuals - residual_mean)**2, weights=w)
+residual_mean_err = np.sqrt(residual_variance / weight_sum)
+
+ax2.axhline(0, color='k', linestyle='-', linewidth=1, alpha=0.8)
+ax2.axhline(residual_mean, color='k', linestyle=':', linewidth=1.1, alpha=0.8)
+xtext = 0.43
+ytext = residual_mean - 0.02
+ax2.text(xtext, ytext,
+         f'Mean: {residual_mean:.2f} $\\pm$ {residual_mean_err:.2f}',
+         ha='center', va='bottom', alpha=0.9, fontsize=12)
+ax2.invert_yaxis()
+ax2.set_xlim(0, 1)
+ax2.set_title("Residuals from 3rd Order Fit", fontsize=12)
+ax2.set_xlabel("Rotational Phase", fontsize=12)
+ax2.grid(True, linestyle=':', linewidth=0.7, alpha=0.7)
+
 plt.tight_layout()
-plt.savefig("Figures/gcurve.png")
+plt.savefig("Figures/gcurve_with_residuals.png")
 plt.show()
