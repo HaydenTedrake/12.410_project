@@ -6,7 +6,7 @@ from scipy.optimize import curve_fit
 from astropy.stats import sigma_clip
 
 CSV_PATH = "g'.csv"
-JD0 = 2460958.552769
+JD0 = 2460937.567619
 P_HOURS = 3.0661
 gap_days = 0.50
 title = "g' light curve of 4217 Engelhardt (WAO 14-in data)"
@@ -109,7 +109,7 @@ weight_sum = np.sum(w)
 mean_err = np.sqrt(variance / weight_sum)
 
 ax1.axhline(mean_val, color='k', linestyle=':', linewidth=1.1, alpha=0.8)
-ax1.text(0.775, mean_val, f'Mean: {mean_val:.2f} $\\pm$ {mean_err:.2f}', 
+ax1.text(0.278, mean_val + 0.015, f'Mean: {mean_val:.2f} $\\pm$ {mean_err:.2f}', 
          ha='center', va='bottom', alpha=0.9, fontsize=12)
 
 period_text = f'Period: {P_HOURS} $\\pm$ 0.0002 hrs'
@@ -128,7 +128,7 @@ ax1.legend(loc="upper left", frameon=True, handlelength=1.5, handletextpad=0.5, 
 
 # Create inset axes for residuals with exact position control
 # [left, bottom, width, height] in figure coordinates (0-1)
-left = 0.47    # Distance from left edge
+left = 0.63    # Distance from left edge
 bottom = 0.155  # Distance from bottom edge  
 width = 0.19   # Width of inset
 height = 0.19  # Height of inset

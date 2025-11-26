@@ -37,7 +37,7 @@ e_ast = np.array(e_ast)
 P_HOURS = 3.0661
 P_days = P_HOURS / 24.0
 gap_days = 0.50
-JD0_ast = 2460958.55063
+JD0_ast = 2460937.567619
 phi_ast = ((t_ast - JD0_ast) / P_days) % 1.0
 
 dt_ast = np.diff(t_ast, prepend=t_ast[0])
@@ -107,7 +107,7 @@ t_comp = np.array(t_comp)
 m_comp = np.array(m_comp)
 e_comp = np.array(e_comp)
 
-JD0_comp = 2460958.5558045
+JD0_comp = 2460937.567619
 phi_comp = ((t_comp - JD0_comp) / P_days) % 1.0
 
 dt_comp = np.diff(t_comp, prepend=t_comp[0])

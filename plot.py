@@ -24,6 +24,7 @@ dt = np.diff(t, prepend=t[0])
 night_id = np.zeros_like(t, dtype=int)
 for i in range(0, len(t)):
     night_id[i] = night_id[i-1] + (dt[i] > gap_days)
+    print(night_id[i], np.mean(m[i]))
     if night_id[i] == 1:
         new_m.append(m[i]-0.1295071438)
     else:
