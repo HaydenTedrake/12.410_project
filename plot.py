@@ -88,6 +88,38 @@ popt, pcov = curve_fit(
     p0=[np.mean(new_m), 0, 0, 0, 0, 0, 0, 0, 0]
 )
 
+phi_dense = np.linspace(0, 1, 5000)
+model_dense = four_harmonic(phi_dense, *popt)
+
+m_max = np.max(model_dense)
+m_min = np.min(model_dense)
+m_mean = np.mean(model_dense)
+
+# Peak-to-peak amplitude (common in asteroid work)
+amp_pp = m_max - m_min
+
+rng = np.random.default_rng(42)  # for reproducibility
+n_samples = 5000
+
+params_samples = rng.multivariate_normal(popt, pcov, size=n_samples)
+
+amps_pp = []
+
+for pars in params_samples:
+    model_s = four_harmonic(phi_dense, *pars)
+    m_max_s = np.max(model_s)
+    m_min_s = np.min(model_s)
+    
+    amp_pp_s   = m_max_s - m_min_s
+    
+    amps_pp.append(amp_pp_s)
+
+amps_pp   = np.array(amps_pp)
+# Best estimates (can use the ones from popt directly, but mean is fine)
+amp_pp_best   = amp_pp
+# 1-sigma uncertainties
+amp_pp_err   = np.std(amps_pp, ddof=1)
+
 print("Best-fit parameters:", popt)
 
 residuals = new_m - four_harmonic(phi, *popt)
@@ -152,11 +184,15 @@ period_text = f'Period: {P_HOURS} $\\pm$ 0.0002 hrs'
 ax1.text(0.01, 0.02, period_text, 
          transform=ax1.transAxes,
          ha='left', va='bottom', alpha=0.9, fontsize=12)
+amp_text = f'Amplitude: {amp_pp_best:.2f} $\\pm$ {amp_pp_err:.2f} mag' 
+ax1.text(0.01, 0.06, amp_text, 
+         transform=ax1.transAxes,
+         ha='left', va='bottom', alpha=0.9, fontsize=12)
 
 ax1.invert_yaxis()
 ax1.set_xlim(0, 1)
 ax1.tick_params(axis='both', which='major', labelsize=12) 
-ax1.set_ylabel("Apparent magnitude (r')", fontsize=12)
+ax1.set_ylabel("Apparent $r'$ magnitude, $m$", fontsize=12)
 ax1.set_xlabel("Rotational Phase", fontsize=12)
 ax1.set_title(title, fontsize=12)
 ax1.grid(True, linestyle=':', linewidth=0.7, alpha=0.7)

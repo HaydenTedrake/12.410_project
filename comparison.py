@@ -199,7 +199,7 @@ ax2.legend(loc="upper right", frameon=True, handlelength=1.5, handletextpad=0.5,
 
 fig.suptitle("g'-r' color index (WAO 14-in data)",
              fontsize=12, x=0.535)
-fig.supylabel("Apparent magnitude (g'-r')", fontsize=12)
+fig.supylabel("Apparent g' - r' magnitude, $m$", fontsize=12)
 plt.tight_layout()
 plt.xticks(fontsize=12)
 plt.yticks(fontsize=12)
