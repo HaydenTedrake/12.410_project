@@ -145,7 +145,7 @@ for i, nid in enumerate(unique_nights_ast):
     )
 
 ax1.axhline(mean_ast, color='k', linestyle='-', linewidth=1.1, alpha=0.8)
-ax1.text(0.5, mean_ast + 0.017, f'Mean: {mean_ast:.2f} $\\pm$ {mean_err_ast:.2f}',
+ax1.text(0.5, mean_ast, f'Mean: {mean_ast:.2f} $\\pm$ {mean_err_ast:.2f}',
          ha='center', va='bottom', alpha=0.9, fontsize=12)
 
 ax1.text(0.01, 0.02, period_text,
@@ -173,7 +173,7 @@ for i, nid in enumerate(unique_nights_comp):
     ax2.axhline(mean_night, color='k', linestyle='-', linewidth=1.1, alpha=0.8)
 
     xtext = 0.5
-    ytext = mean_night + (0.05 if nid == 0 else 0.07)
+    ytext = mean_night
     ax2.text(xtext, ytext,
              f'Mean: {mean_night:.2f} $\\pm$ {mean_err_night:.2f}',
              ha='center', va='bottom', alpha=0.9, fontsize=12)
