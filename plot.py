@@ -4,8 +4,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 from astropy.stats import sigma_clip
+from PyAstronomy.pyTiming import pyPDM
 
-CSV_PATH = "r'.csv"
+CSV_PATH = "Files/r'.csv"
 JD0 = 2460937.567619
 P_HOURS = 3.0661
 gap_days = 0.50
@@ -16,20 +17,52 @@ t = df["JD"].astype(float).to_numpy()
 m = df["Mag"].astype(float).to_numpy()
 e = df["MagErr"].astype(float).to_numpy()
 
-P_days = P_HOURS / 24.0
-phi = ((t - JD0) / P_days) % 1.0
-
 new_m = []
 dt = np.diff(t, prepend=t[0])
 night_id = np.zeros_like(t, dtype=int)
 for i in range(0, len(t)):
     night_id[i] = night_id[i-1] + (dt[i] > gap_days)
     print(night_id[i], np.mean(m[i]))
-    if night_id[i] == 1:
-        new_m.append(m[i]-0.1295071438)
+    if night_id[i] == 0:
+        new_m.append(m[i]-0.023)
+    elif night_id[i] == 1:
+        new_m.append(m[i]-0.15)
+    elif night_id[i] == 2:
+        new_m.append(m[i]-0.03)
     else:
         new_m.append(m[i])
 new_m = np.array(new_m)
+
+## best period search
+P_min_hours = 3.06
+P_max_hours = 3.07
+P_min = P_min_hours / 24.0
+P_max = P_max_hours / 24.0
+dP = (P_max - P_min) / 4000.0
+scanner = pyPDM.Scanner(minVal=P_min, maxVal=P_max, dVal=dP, mode="period")
+y = new_m
+PDM = pyPDM.PyPDM(t, y)
+periods, theta = PDM.pdmEquiBin(10, scanner)
+best_idx = np.argmin(theta)
+best_period_days = periods[best_idx]
+best_period_hours = best_period_days * 24.0
+# error
+Nboot = 200
+P_boot = []
+rng = np.random.default_rng(0)
+for _ in range(Nboot):
+    idx = rng.integers(0, len(t), len(t))
+    t_b = t[idx]
+    m_b = new_m[idx]
+    PDM_b = pyPDM.PyPDM(t_b, m_b)
+    periods_b, theta_b = PDM_b.pdmEquiBin(10, scanner)
+    P_boot.append(periods_b[np.argmin(theta_b)] * 24)
+P_boot = np.array(P_boot)
+period_err_hours = np.std(P_boot, ddof=1)
+print(best_period_hours, period_err_hours)
+
+P_days = best_period_hours / 24.0
+phi = ((t - JD0) / P_days) % 1.0
 
 def two_harmonic(phi, a0, a1, b1, a2, b2):
     return (
@@ -171,20 +204,15 @@ phi_fit = np.linspace(0, 1, 600)
 new_m_fit = four_harmonic(phi_fit, *popt)
 ax1.plot(phi_fit, new_m_fit, 'k-', lw=2, label="4th Order Fit")
 
-mean_val = np.average(new_m, weights=w)
-variance = np.average((new_m - mean_val)**2, weights=w)
-weight_sum = np.sum(w)
-mean_err = np.sqrt(variance / weight_sum)
-
 ax1.axhline(mean_val, color='k', linestyle=':', linewidth=1.1, alpha=0.8)
-ax1.text(0.8, mean_val + 0.015, f'Mean: {mean_val:.2f} $\\pm$ {mean_err:.2f}', 
+ax1.text(0.773, mean_val + 0.0125, f'Mean: {mean_val:.5f} $\\pm$ {mean_err:.5f}', 
          ha='center', va='bottom', alpha=0.9, fontsize=12)
 
-period_text = f'Period: {P_HOURS} $\\pm$ 0.0002 hrs'
+period_text = f'Period: {best_period_hours:.4f} $\\pm$ {period_err_hours:.4f} hrs'
 ax1.text(0.01, 0.02, period_text, 
          transform=ax1.transAxes,
          ha='left', va='bottom', alpha=0.9, fontsize=12)
-amp_text = f'Amplitude: {amp_pp_best:.2f} $\\pm$ {amp_pp_err:.2f} mag' 
+amp_text = f'Amplitude: {amp_pp_best:.3f} $\\pm$ {amp_pp_err:.3f} mag' 
 ax1.text(0.01, 0.06, amp_text, 
          transform=ax1.transAxes,
          ha='left', va='bottom', alpha=0.9, fontsize=12)

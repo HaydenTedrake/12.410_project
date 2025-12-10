@@ -6,7 +6,6 @@ import pickle
 # =========================
 # 1. ASTEROID COLOR CURVE
 # =========================
-
 with open("rtenten.pkl", "rb") as f:
     rtenten = pickle.load(f)
 with open("rtentwentyfour.pkl", "rb") as f:
@@ -67,7 +66,7 @@ period_text = f'Period: {P_HOURS} $\\pm$ 0.0002 hrs'
 
 PATH1 = "1010rcomp.csv"
 PATH2 = "1010gcomp.csv"
-PATH3 = "1024rcomp.csv"
+PATH3 = "Files/1024rcomp.csv"
 PATH4 = "1024gcomp.csv"
 
 df1 = pd.read_csv(PATH1)
@@ -145,7 +144,7 @@ for i, nid in enumerate(unique_nights_ast):
     )
 
 ax1.axhline(mean_ast, color='k', linestyle='-', linewidth=1.1, alpha=0.8)
-ax1.text(0.5, mean_ast, f'Mean: {mean_ast:.2f} $\\pm$ {mean_err_ast:.2f}',
+ax1.text(0.5, mean_ast, f'Mean: {mean_ast:.4f} $\\pm$ {mean_err_ast:.4f}',
          ha='center', va='bottom', alpha=0.9, fontsize=12)
 
 ax1.text(0.01, 0.02, period_text,
@@ -171,11 +170,14 @@ for i, nid in enumerate(unique_nights_comp):
     mean_err_night = np.sqrt(var_night / weight_sum_night)
 
     ax2.axhline(mean_night, color='k', linestyle='-', linewidth=1.1, alpha=0.8)
-
-    xtext = 0.5
-    ytext = mean_night
+    if nid == 0:
+        xtext = 0.53
+        ytext = mean_night - 0.001
+    if nid == 1:
+        xtext = 0.5
+        ytext = mean_night
     ax2.text(xtext, ytext,
-             f'Mean: {mean_night:.2f} $\\pm$ {mean_err_night:.2f}',
+             f'Mean: {mean_night:.4f} $\\pm$ {mean_err_night:.4f}',
              ha='center', va='bottom', alpha=0.9, fontsize=12)
 
     ax2.errorbar(
